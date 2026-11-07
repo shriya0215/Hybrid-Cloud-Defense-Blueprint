@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hybrid Cloud Layered Defense | SOC Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .grid-bg {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+    }
+    .glow-red {
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.35);
+    }
+    .pulse-packet {
+      animation: pulseAnim 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+    @keyframes pulseAnim {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.15); }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen grid-bg antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- ==================== HEADER BAR ==================== -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-cyan-500/20">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-bold text-lg text-white tracking-tight">Hybrid Cloud Defense Blueprint</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">NIST SP 800-207</span>
+          </div>
+          <p class="text-xs text-slate-400">Zero-Trust Architecture & SOC Simulation Control Center</p>
+        </div>
+      </div>
+
+      <!-- Quick Nav Buttons -->
+      <div class="flex items-center space-x-2">
+        <a href="HYBRID_CLOUD_DEFENSE_BLUEPRINT.md" target="_blank" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-book"></i>
+          <span>Read Blueprint</span>
+        </a>
+        <a href="https://github.com/shriya0215/Hybrid-Cloud-Defense-Blueprint" target="_blank" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white transition flex items-center space-x-1.5 shadow-md shadow-cyan-600/30">
+          <i class="fa-brands fa-github"></i>
+          <span>GitHub Repo</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Top Status Metric Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between text-slate-400 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wider">Perimeter Status</span>
+          <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-white">Active Defense</div>
+        <div class="text-xs text-emerald-400 mt-1 flex items-center">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-ping"></span>
+          5 Boundaries Filtering
+        </div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between text-slate-400 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wider">IDS/IPS Engines</span>
+          <i class="fa-solid fa-radar text-cyan-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-white">Suricata 7.x + Zeek</div>
+        <div class="text-xs text-cyan-400 mt-1">DPDK Inline & SPAN Mirror</div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between text-slate-400 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wider">Endpoint & Workloads</span>
+          <i class="fa-solid fa-laptop-code text-indigo-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-white">EDR + Wazuh + Falco</div>
+        <div class="text-xs text-indigo-400 mt-1">Kernel eBPF & Memory Guard</div>
+      </div>
+
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between text-slate-400 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wider">Residual Threat Risk</span>
+          <i class="fa-solid fa-shield-virus text-amber-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-emerald-400">Low (84% Mitigation)</div>
+        <div class="text-xs text-slate-400 mt-1">NIST Zero Trust Aligned</div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB NAVIGATION ==================== -->
+    <div class="flex border-b border-slate-800 space-x-1 sm:space-x-2">
+      <button onclick="switchTab('topology')" id="tab-topology" class="tab-btn active px-4 py-2.5 text-sm font-semibold rounded-t-lg border-b-2 border-cyan-500 text-cyan-400 bg-slate-900/50 flex items-center space-x-2">
+        <i class="fa-solid fa-network-wired"></i>
+        <span>1. Interactive Topology & Flow Simulator</span>
+      </button>
+      <button onclick="switchTab('firewall')" id="tab-firewall" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center space-x-2">
+        <i class="fa-solid fa-fire"></i>
+        <span>2. Firewall Rule Matrix & Tester</span>
+      </button>
+      <button onclick="switchTab('ids')" id="tab-ids" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center space-x-2">
+        <i class="fa-solid fa-bell"></i>
+        <span>3. Live IDS/IPS Threat Feed</span>
+      </button>
+      <button onclick="switchTab('risk')" id="tab-risk" class="tab-btn px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-slate-200 border-b-2 border-transparent hover:border-slate-700 flex items-center space-x-2">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>4. Risk Matrix & MITRE ATT&CK</span>
+      </button>
+    </div>
+
+    <!-- ==================== TAB 1: INTERACTIVE TOPOLOGY ==================== -->
+    <section id="content-topology" class="tab-content space-y-6">
+      
+      <!-- Simulation Controls -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-base text-white flex items-center space-x-2">
+              <i class="fa-solid fa-play text-cyan-400"></i>
+              <span>Simulate Real-World Traffic & Attack Scenarios</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-1">Select a scenario to trace packet traversal, firewall evaluation, and sensor reactions in real-time:</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="runSimulation('normal')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-check"></i>
+              <span>Legitimate HTTPS User</span>
+            </button>
+            <button onclick="runSimulation('ssrf')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-600 hover:bg-rose-500 text-white transition flex items-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-skull"></i>
+              <span>Cloud SSRF / IMDSv1 Steal</span>
+            </button>
+            <button onclick="runSimulation('lateral')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-500 text-white transition flex items-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-arrows-split-up-and-left"></i>
+              <span>Lateral Workstation Pivot</span>
+            </button>
+            <button onclick="runSimulation('ransomware')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition flex items-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-envelope-open-text"></i>
+              <span>Ransomware Phishing Attach</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Simulation Narrative Box -->
+        <div id="sim-status" class="mt-4 p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-start space-x-3 text-xs mono text-slate-300">
+          <div class="mt-0.5 text-cyan-400 text-base"><i class="fa-solid fa-terminal"></i></div>
+          <div id="sim-log">Ready. Click any simulation button above to trace packet flow across On-Premises DMZ, Transit Interconnect, and Cloud VPC boundaries.</div>
+        </div>
+      </div>
+
+      <!-- Topology Visual Map -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- On-Premises Domain (5 Cols) -->
+        <div class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+              <h4 class="font-bold text-sm text-white">On-Premises HQ / DC</h4>
+            </div>
+            <span class="text-xs mono text-slate-400">10.10.0.0/16</span>
+          </div>
+
+          <!-- Perimeter NGFW & NIPS -->
+          <div id="node-edge-fw" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 transition duration-300">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-shield text-blue-400"></i>
+                <span class="font-semibold text-xs text-white">Edge Perimeter NGFW + NIPS</span>
+              </div>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">Boundary 1</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Palo Alto Active/Passive + Inline Suricata 7.x</p>
+          </div>
+
+          <!-- DMZ Zone -->
+          <div id="node-dmz" class="p-3.5 rounded-xl bg-amber-950/20 border border-amber-900/30 transition duration-300 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-xs text-amber-300">Demilitarized Zone (DMZ)</span>
+              <span class="text-[10px] mono text-amber-400/80">10.10.1.0/24</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+              <div class="p-1.5 rounded bg-slate-950/80 border border-slate-800">WAF / Reverse Proxy</div>
+              <div class="p-1.5 rounded bg-slate-950/80 border border-slate-800">Email Gateway (SEG)</div>
+              <div class="p-1.5 rounded bg-slate-950/80 border border-slate-800">Sandbox Chamber</div>
+            </div>
+          </div>
+
+          <!-- Internal Segmentation FW -->
+          <div id="node-isfw" class="p-3 rounded-xl bg-slate-950 border border-slate-800 transition duration-300">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-xs text-slate-300"><i class="fa-solid fa-filter text-indigo-400 mr-1.5"></i>Internal Segmentation FW (ISFW)</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Boundary 2</span>
+            </div>
+          </div>
+
+          <!-- Internal Subnets -->
+          <div class="grid grid-cols-2 gap-3">
+            <div id="node-lan" class="p-3 rounded-xl bg-slate-950 border border-slate-800 transition duration-300">
+              <div class="text-xs font-semibold text-white">Corp LAN (Workstations)</div>
+              <div class="text-[10px] mono text-slate-400 mt-0.5">10.10.10.0/24</div>
+              <div class="text-[10px] text-cyan-400 mt-1"><i class="fa-solid fa-shield-cat mr-1"></i>CrowdStrike EDR + Wazuh</div>
+            </div>
+            <div id="node-core-srv" class="p-3 rounded-xl bg-slate-950 border border-slate-800 transition duration-300">
+              <div class="text-xs font-semibold text-white">Tier-0 Identity & Data</div>
+              <div class="text-[10px] mono text-slate-400 mt-0.5">10.10.20.0/24</div>
+              <div class="text-[10px] text-emerald-400 mt-1"><i class="fa-solid fa-lock mr-1"></i>Active Directory + ERP</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Encrypted Hybrid Interconnect (2 Cols) -->
+        <div class="lg:col-span-2 flex flex-col justify-center">
+          <div id="node-interconnect" class="bg-gradient-to-b from-indigo-950/40 via-slate-900 to-indigo-950/40 border border-indigo-800/40 rounded-2xl p-4 text-center space-y-3 transition duration-300">
+            <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto text-lg border border-indigo-500/30">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div>
+              <div class="font-bold text-xs text-white">Hybrid Transit Trunk</div>
+              <div class="text-[10px] text-indigo-300 mt-0.5">AWS Direct Connect</div>
+              <div class="text-[9px] mono text-slate-400">10.10.250.0/30</div>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-950/90 border border-slate-800 text-[10px] text-slate-300">
+              <span class="block font-semibold text-cyan-400">Boundary 3 FW</span>
+              BGP Filter + MACsec Tunnel
+            </div>
+            <div class="text-[10px] text-emerald-400 flex items-center justify-center">
+              <i class="fa-solid fa-lock mr-1"></i> AES-256-GCM
+            </div>
+          </div>
+        </div>
+
+        <!-- Cloud Enterprise VPC (5 Cols) -->
+        <div class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+              <h4 class="font-bold text-sm text-white">Cloud Enterprise VPC (AWS Region)</h4>
+            </div>
+            <span class="text-xs mono text-slate-400">10.20.0.0/16</span>
+          </div>
+
+          <!-- Cloud Transit & Inspection -->
+          <div id="node-cloud-sec" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 transition duration-300">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-cloud text-cyan-400"></i>
+                <span class="font-semibold text-xs text-white">Transit Gateway + Security VPC</span>
+              </div>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Boundary 4</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2 text-[10px] text-slate-300">
+              <div class="p-1.5 rounded bg-slate-900 border border-slate-800">AWS WAF v2 (OWASP Top 10)</div>
+              <div class="p-1.5 rounded bg-slate-900 border border-slate-800">AWS Network Firewall</div>
+            </div>
+          </div>
+
+          <!-- Application Tier -->
+          <div id="node-cloud-app" class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 transition duration-300 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-xs text-white"><i class="fa-solid fa-cubes text-purple-400 mr-1.5"></i>Private App Subnet (EKS Containers)</span>
+              <span class="text-[10px] mono text-slate-400">10.20.17.0/24</span>
+            </div>
+            <p class="text-[11px] text-slate-400">Calico CNI Microsegmentation + Falco eBPF Runtime Agent</p>
+          </div>
+
+          <!-- Isolated Database Tier -->
+          <div id="node-cloud-db" class="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-900/30 transition duration-300 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-xs text-emerald-300"><i class="fa-solid fa-database text-emerald-400 mr-1.5"></i>Isolated Database Tier (Aurora Multi-AZ)</span>
+              <span class="text-[10px] mono text-emerald-400">10.20.18.0/24</span>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
+              <span>Boundary 5: Hypervisor Security Groups</span>
+              <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-ban mr-1"></i>No Internet Route</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: FIREWALL MATRIX & TESTER ==================== -->
+    <section id="content-firewall" class="tab-content hidden space-y-6">
+      
+      <!-- Interactive Packet Tester -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+        <h3 class="font-bold text-base text-white flex items-center space-x-2">
+          <i class="fa-solid fa-vial text-cyan-400"></i>
+          <span>Interactive Packet Evaluation Simulator</span>
+        </h3>
+        <p class="text-xs text-slate-400 mt-1">Enter packet parameters to test how the 5-boundary firewall policy responds:</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Source IP / Zone</label>
+            <select id="test-src" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+              <option value="INTERNET">Internet (0.0.0.0/0)</option>
+              <option value="10.10.1.10">DMZ Reverse Proxy (10.10.1.10)</option>
+              <option value="10.10.10.45">Corp Workstation (10.10.10.45)</option>
+              <option value="10.20.17.50">Cloud App Pod (10.20.17.50)</option>
+              <option value="10.20.18.20">Cloud Aurora DB (10.20.18.20)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Destination IP</label>
+            <select id="test-dst" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+              <option value="10.10.1.10">DMZ Reverse Proxy (10.10.1.10)</option>
+              <option value="10.10.20.10">On-Prem AD DC (10.10.20.10)</option>
+              <option value="10.10.20.50">On-Prem Core DB (10.10.20.50)</option>
+              <option value="10.20.18.20">Cloud Aurora DB (10.20.18.20)</option>
+              <option value="169.254.169.254">AWS IMDS (169.254.169.254)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Port & Protocol</label>
+            <select id="test-port" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+              <option value="443-TCP">Port 443 (HTTPS)</option>
+              <option value="80-TCP">Port 80 (HTTP / IMDS)</option>
+              <option value="636-TCP">Port 636 (LDAPS)</option>
+              <option value="445-TCP">Port 445 (SMB / RPC)</option>
+              <option value="5432-TCP">Port 5432 (Postgres DB)</option>
+            </select>
+          </div>
+
+          <div class="flex items-end">
+            <button onclick="evaluatePacket()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs rounded-lg transition shadow-md shadow-cyan-600/30 flex items-center justify-center space-x-1.5">
+              <i class="fa-solid fa-play"></i>
+              <span>Test Firewall Rule</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="packet-result" class="mt-4 hidden p-3 rounded-xl border text-xs mono"></div>
+      </div>
+
+      <!-- Complete Firewall Rule Table -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+          <h3 class="font-bold text-sm text-white">Layered Boundary Firewall Rules</h3>
+          <span class="text-xs text-slate-400">Extracted from <code class="text-cyan-400">firewall_policy.yaml</code></span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/80 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Rule ID</th>
+                <th class="py-3 px-4">Boundary</th>
+                <th class="py-3 px-4">Source</th>
+                <th class="py-3 px-4">Destination</th>
+                <th class="py-3 px-4">Port/Proto</th>
+                <th class="py-3 px-4">Action</th>
+                <th class="py-3 px-4">Inspection Type</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono text-slate-300">
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 text-cyan-400 font-bold">FW-EDGE-01</td>
+                <td class="py-3 px-4">Perimeter</td>
+                <td class="py-3 px-4 text-rose-400">GeoIP:Sanctioned</td>
+                <td class="py-3 px-4">ANY</td>
+                <td class="py-3 px-4">ANY</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">DROP</span></td>
+                <td class="py-3 px-4 text-slate-400">Threat Intelligence Feed</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 text-cyan-400 font-bold">FW-EDGE-02</td>
+                <td class="py-3 px-4">Perimeter</td>
+                <td class="py-3 px-4">0.0.0.0/0</td>
+                <td class="py-3 px-4">10.10.1.10 (Proxy)</td>
+                <td class="py-3 px-4">443 / TCP</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">ALLOW</span></td>
+                <td class="py-3 px-4 text-slate-400">Stateful + SSL Decrypt + WAF</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 text-indigo-400 font-bold">FW-DMZ-04</td>
+                <td class="py-3 px-4">DMZ to Core</td>
+                <td class="py-3 px-4">10.10.1.0/24 (DMZ)</td>
+                <td class="py-3 px-4">10.10.20.10 (AD)</td>
+                <td class="py-3 px-4">636 / TCP</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">ALLOW</span></td>
+                <td class="py-3 px-4 text-slate-400">LDAPS Strict + Client Cert</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 text-indigo-400 font-bold">FW-DMZ-06</td>
+                <td class="py-3 px-4">DMZ to Core</td>
+                <td class="py-3 px-4">10.10.1.0/24 (DMZ)</td>
+                <td class="py-3 px-4">10.10.20.0/24 (Core)</td>
+                <td class="py-3 px-4">ANY</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">DROP & ALERT</span></td>
+                <td class="py-3 px-4 text-slate-400">Zero-Trust Isolation Alarm</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 text-amber-400 font-bold">FW-HYB-06</td>
+                <td class="py-3 px-4">Interconnect</td>
+                <td class="py-3 px-4">10.20.18.0/24 (Cloud DB)</td>
+                <td class="py-3 px-4">10.10.0.0/16 (On-Prem)</td>
+                <td class="py-3 px-4">ANY</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">DROP & ALERT</span></td>
+                <td class="py-3 px-4 text-slate-400">Database Outbound Block</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 text-purple-400 font-bold">WAF-CLD-01</td>
+                <td class="py-3 px-4">Cloud WAF</td>
+                <td class="py-3 px-4">0.0.0.0/0</td>
+                <td class="py-3 px-4">CloudFront / ALB</td>
+                <td class="py-3 px-4">443 / TCP</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">BLOCK</span></td>
+                <td class="py-3 px-4 text-slate-400">OWASP Top 10 + SQLi/XSS</td>
+              </tr>
+              <tr class="hover:bg-slate-800/40">
+                <td class="py-3 px-4 text-purple-400 font-bold">ANF-CLD-02</td>
+                <td class="py-3 px-4">Cloud Egress</td>
+                <td class="py-3 px-4">10.20.17.0/24 (App)</td>
+                <td class="py-3 px-4">INTERNET</td>
+                <td class="py-3 px-4">443 / TCP</td>
+                <td class="py-3 px-4"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">ALLOW</span></td>
+                <td class="py-3 px-4 text-slate-400">Domain Whitelist (.amazonaws, github)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: LIVE IDS/IPS FEED ==================== -->
+    <section id="content-ids" class="tab-content hidden space-y-6">
+      
+      <!-- Live Suricata Alert Console -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="font-bold text-sm text-white flex items-center space-x-2">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Suricata 7.x & Wazuh Security Event Feed</span>
+            </h3>
+            <p class="text-xs text-slate-400">Simulating live sensor telemetry streamed from Edge, Core SPAN, and Cloud Network Firewall:</p>
+          </div>
+          <button onclick="injectRandomAlert()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-slate-700 transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-plus"></i>
+            <span>Inject Test Threat Event</span>
+          </button>
+        </div>
+
+        <div id="alert-feed-container" class="space-y-2.5 max-h-[480px] overflow-y-auto pr-2 font-mono text-xs">
+          <!-- Injected alert cards go here -->
+          <div class="p-3 rounded-xl bg-rose-950/30 border border-rose-900/40 flex items-start justify-between">
+            <div class="space-y-1">
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 font-bold">CRITICAL DROP</span>
+                <span class="text-white font-semibold">SID:2026010 — Unauthorized Attempt to Query AWS IMDS Directly</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Workload pod 10.20.17.42 sent GET request to 169.254.169.254 without IMDSv2 token challenge.</p>
+              <div class="text-[10px] text-slate-500">Sensor: AWS Network Firewall | MITRE: T1552.005 (Cloud Instance Metadata)</div>
+            </div>
+            <span class="text-[10px] text-slate-500">Just now</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-amber-950/30 border border-amber-900/40 flex items-start justify-between">
+            <div class="space-y-1">
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-400 font-bold">WARNING ALERT</span>
+                <span class="text-white font-semibold">SID:2026020 — Suspected Kerberoasting Activity (RC4-HMAC TGS-REQ)</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Host 10.10.10.63 requested 8 Kerberos service tickets with legacy etype 0x17 within 15 seconds.</p>
+              <div class="text-[10px] text-slate-500">Sensor: Core SPAN (Suricata + Zeek) | MITRE: T1558.003 (Kerberoasting)</div>
+            </div>
+            <span class="text-[10px] text-slate-500">1 min ago</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-rose-950/30 border border-rose-900/40 flex items-start justify-between">
+            <div class="space-y-1">
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 font-bold">CRITICAL DROP</span>
+                <span class="text-white font-semibold">SID:2026001 — Inbound Log4j JNDI Exploit Attempt Detected</span>
+              </div>
+              <p class="text-[11px] text-slate-400">Pattern '${jndi:ldap://...}' detected in HTTP User-Agent header from 198.51.100.84 to DMZ Reverse Proxy.</p>
+              <div class="text-[10px] text-slate-500">Sensor: Edge Perimeter NIPS | MITRE: T1190 (Exploit Public-Facing App)</div>
+            </div>
+            <span class="text-[10px] text-slate-500">3 mins ago</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: RISK ASSESSMENT MATRIX ==================== -->
+    <section id="content-risk" class="tab-content hidden space-y-6">
+      
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5">
+        <h3 class="font-bold text-base text-white">Quantitative Risk Matrix & Threat Mitigation Mapping</h3>
+        <p class="text-xs text-slate-400 mt-1">Comparing Inherent Threat Risk vs Residual Risk after Layered Blueprint Controls are deployed:</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+          
+          <!-- Threat Card 1 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-400">THREAT-01</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">Risk: 20 → 4 (Low)</span>
+            </div>
+            <h4 class="font-bold text-sm text-white mt-1">Lateral Movement via Hybrid Interconnect</h4>
+            <p class="text-xs text-slate-400 mt-2">Workstation pivot over AWS Direct Connect targeting cloud production database.</p>
+            <div class="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-300">
+              <span class="text-cyan-400 font-semibold">Blueprint Control:</span> Boundary FW (<code class="text-slate-200">FW-HYB-06</code>) + AWS Network Firewall + EDR endpoint isolation.
+            </div>
+          </div>
+
+          <!-- Threat Card 2 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-400">THREAT-02</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">Risk: 25 → 3 (Low)</span>
+            </div>
+            <h4 class="font-bold text-sm text-white mt-1">Ransomware Outbreak via Spear-Phishing</h4>
+            <p class="text-xs text-slate-400 mt-2">Weaponized attachment evasion attempting mass local encryption and dynamic C2 beaconing.</p>
+            <div class="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-300">
+              <span class="text-cyan-400 font-semibold">Blueprint Control:</span> SEG DMARC (<code class="text-slate-200">p=reject</code>) + Detonation Sandbox + EDR behavioral kill-switch.
+            </div>
+          </div>
+
+          <!-- Threat Card 3 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-400">THREAT-03</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">Risk: 20 → 2 (Low)</span>
+            </div>
+            <h4 class="font-bold text-sm text-white mt-1">SSRF Cloud IMDS Credential Theft</h4>
+            <p class="text-xs text-slate-400 mt-2">Web app exploit querying 169.254.169.254 to hijack temporary IAM role credentials.</p>
+            <div class="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-300">
+              <span class="text-cyan-400 font-semibold">Blueprint Control:</span> AWS WAF v2 + Mandatory IMDSv2 + Falco eBPF container runtime sensor.
+            </div>
+          </div>
+
+          <!-- Threat Card 4 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-400">THREAT-04</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-semibold">Risk: 15 → 6 (Med)</span>
+            </div>
+            <h4 class="font-bold text-sm text-white mt-1">Zero-Day Vulnerability in Perimeter Gateway</h4>
+            <p class="text-xs text-slate-400 mt-2">Memory corruption exploit against public VPN/NGFW gateway interface.</p>
+            <div class="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-300">
+              <span class="text-cyan-400 font-semibold">Blueprint Control:</span> Geo-IP perimeter shedding + OOB management isolation + ISFW zero-trust block.
+            </div>
+          </div>
+
+          <!-- Threat Card 5 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-400">THREAT-05</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">Risk: 12 → 3 (Low)</span>
+            </div>
+            <h4 class="font-bold text-sm text-white mt-1">CI/CD Pipeline Container Backdoor</h4>
+            <p class="text-xs text-slate-400 mt-2">Compromised upstream dependency baked into production Kubernetes container image.</p>
+            <div class="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-300">
+              <span class="text-cyan-400 font-semibold">Blueprint Control:</span> Read-only root filesystem + Calico egress policy + Falco shell spawn kill.
+            </div>
+          </div>
+
+          <!-- Threat Card 6 -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-400">THREAT-06</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-semibold">Risk: 16 → 2 (Low)</span>
+            </div>
+            <h4 class="font-bold text-sm text-white mt-1">Kerberoasting Privilege Escalation</h4>
+            <p class="text-xs text-slate-400 mt-2">Requesting RC4 Kerberos tickets for Active Directory SPNs to crack domain admin passwords.</p>
+            <div class="mt-3 pt-3 border-t border-slate-800 text-[11px] text-slate-300">
+              <span class="text-cyan-400 font-semibold">Blueprint Control:</span> Zeek RC4 ticket rate anomaly alert + Tier-0 AD isolation + gMSA passwords.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'border-cyan-500', 'text-cyan-400', 'bg-slate-900/50');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      const activeContent = document.getElementById(`content-${tabId}`);
+      if (activeBtn && activeContent) {
+        activeBtn.classList.add('active', 'border-cyan-500', 'text-cyan-400', 'bg-slate-900/50');
+        activeBtn.classList.remove('border-transparent', 'text-slate-400');
+        activeContent.classList.remove('hidden');
+      }
+    }
+
+    // Interactive Packet Evaluation
+    function evaluatePacket() {
+      const src = document.getElementById('test-src').value;
+      const dst = document.getElementById('test-dst').value;
+      const portProto = document.getElementById('test-port').value;
+      const resultBox = document.getElementById('packet-result');
+
+      resultBox.classList.remove('hidden', 'bg-emerald-950/30', 'border-emerald-800', 'text-emerald-300', 'bg-rose-950/30', 'border-rose-800', 'text-rose-300');
+
+      // Rules evaluation logic
+      if (src === 'INTERNET' && dst === '10.10.1.10' && portProto === '443-TCP') {
+        resultBox.classList.add('bg-emerald-950/30', 'border-emerald-800', 'text-emerald-300');
+        resultBox.innerHTML = `<strong>MATCH RULE [FW-EDGE-02]: ALLOW</strong><br>Flow: Internet -> Reverse Proxy (10.10.1.10:443)<br>Action: Inbound HTTPS permitted with TLS Termination & WAF inspection.`;
+      } 
+      else if (dst === '169.254.169.254') {
+        resultBox.classList.add('bg-rose-950/30', 'border-rose-800', 'text-rose-300');
+        resultBox.innerHTML = `<strong>MATCH RULE [ANF-CLD-01 / SID:2026010]: BLOCKED & ALERTED</strong><br>Flow: ${src} -> AWS IMDS (169.254.169.254:${portProto})<br>Action: Dropped! Direct queries to IMDS without IMDSv2 token are prohibited.`;
+      }
+      else if (src === '10.10.10.45' && dst === '10.20.18.20') {
+        resultBox.classList.add('bg-rose-950/30', 'border-rose-800', 'text-rose-300');
+        resultBox.innerHTML = `<strong>MATCH RULE [FW-HYB-06 / SG-DB-Nodes]: DROPPED</strong><br>Flow: Corp Workstation -> Cloud Isolated Database<br>Action: Dropped! Workstations cannot access isolated database subnets directly.`;
+      }
+      else if (src === '10.10.1.10' && dst === '10.10.20.10' && portProto === '636-TCP') {
+        resultBox.classList.add('bg-emerald-950/30', 'border-emerald-800', 'text-emerald-300');
+        resultBox.innerHTML = `<strong>MATCH RULE [FW-DMZ-04]: ALLOW</strong><br>Flow: DMZ Proxy -> AD Domain Controller (Port 636 LDAPS)<br>Action: Permitted under strict mTLS with client certificate validation.`;
+      }
+      else {
+        resultBox.classList.add('bg-rose-950/30', 'border-rose-800', 'text-rose-300');
+        resultBox.innerHTML = `<strong>DEFAULT ZERO-TRUST CLEANUP RULE: DROP & LOG</strong><br>Flow: ${src} -> ${dst} on ${portProto}<br>Action: Denied by default policy. No explicit permit rule exists.`;
+      }
+    }
+
+    // Scenario Simulator
+    function runSimulation(scenario) {
+      const log = document.getElementById('sim-log');
+      const nodes = ['node-edge-fw', 'node-dmz', 'node-isfw', 'node-lan', 'node-core-srv', 'node-interconnect', 'node-cloud-sec', 'node-cloud-app', 'node-cloud-db'];
+      nodes.forEach(n => {
+        const el = document.getElementById(n);
+        if (el) el.classList.remove('glow-cyan', 'glow-red', 'border-cyan-500', 'border-rose-500');
+      });
+
+      if (scenario === 'normal') {
+        log.innerHTML = `<span class="text-emerald-400 font-bold">[LEGITIMATE FLOW]</span> Inbound user on HTTPS:443 -> Cloud WAF passed -> Cloud ALB -> EKS Microservice Pod -> Aurora DB (Port 5432). All boundary checks PASSED.`;
+        document.getElementById('node-cloud-sec').classList.add('glow-cyan', 'border-cyan-500');
+        document.getElementById('node-cloud-app').classList.add('glow-cyan', 'border-cyan-500');
+        document.getElementById('node-cloud-db').classList.add('glow-cyan', 'border-cyan-500');
+      } else if (scenario === 'ssrf') {
+        log.innerHTML = `<span class="text-rose-400 font-bold">[ATTACK BLOCKED]</span> Compromised Pod tried querying 169.254.169.254. AWS Network Firewall + Falco eBPF triggered instant DROP. Incident token revoked.`;
+        document.getElementById('node-cloud-app').classList.add('glow-red', 'border-rose-500');
+        document.getElementById('node-cloud-sec').classList.add('glow-red', 'border-rose-500');
+      } else if (scenario === 'lateral') {
+        log.innerHTML = `<span class="text-rose-400 font-bold">[LATERAL PIVOT BLOCKED]</span> Workstation 10.10.10.45 probed Direct Connect to reach Cloud Aurora DB. Boundary FW-HYB-06 dropped packet. EDR isolated host.`;
+        document.getElementById('node-lan').classList.add('glow-red', 'border-rose-500');
+        document.getElementById('node-interconnect').classList.add('glow-red', 'border-rose-500');
+      } else if (scenario === 'ransomware') {
+        log.innerHTML = `<span class="text-purple-400 font-bold">[ZERO-DAY QUARANTINED]</span> Malicious macro email detected by SEG -> Detonated in Sandbox Chamber -> Hash broadcast to EDR in 42s.`;
+        document.getElementById('node-edge-fw').classList.add('glow-cyan', 'border-cyan-500');
+        document.getElementById('node-dmz').classList.add('glow-red', 'border-rose-500');
+      }
+    }
+
+    // In-memory test event injection
+    function injectRandomAlert() {
+      const container = document.getElementById('alert-feed-container');
+      const alerts = [
+        {
+          sid: '2026030',
+          title: 'High Entropy DNS Tunneling Payload Detected',
+          desc: 'Host 10.10.10.119 made 44 DNS queries exceeding 52 bytes length to strange NS.',
+          sensor: 'Core SPAN (Zeek)',
+          type: 'WARNING ALERT',
+          color: 'amber'
+        },
+        {
+          sid: '2026002',
+          title: 'Spring4Shell Remote Code Execution Attempt Dropped',
+          desc: 'Inbound class.module.classLoader manipulation string intercepted on port 8080.',
+          sensor: 'AWS Network Firewall',
+          type: 'CRITICAL DROP',
+          color: 'rose'
+        }
+      ];
+
+      const item = alerts[Math.floor(Math.random() * alerts.length)];
+      const div = document.createElement('div');
+      div.className = `p-3 rounded-xl bg-${item.color}-950/30 border border-${item.color}-900/40 flex items-start justify-between animate-fadeIn`;
+      div.innerHTML = `
+        <div class="space-y-1">
+          <div class="flex items-center space-x-2">
+            <span class="px-2 py-0.5 rounded text-[10px] bg-${item.color}-500/20 text-${item.color}-400 font-bold">${item.type}</span>
+            <span class="text-white font-semibold">SID:${item.sid} — ${item.title}</span>
+          </div>
+          <p class="text-[11px] text-slate-400">${item.desc}</p>
+          <div class="text-[10px] text-slate-500">Sensor: ${item.sensor} | Timestamp: ${new Date().toLocaleTimeString()}</div>
+        </div>
+        <span class="text-[10px] text-cyan-400 font-bold">NEW</span>
+      `;
+      container.prepend(div);
+    }
+  </script>
+</body>
+</html>
