@@ -11,12 +11,25 @@ A comprehensive, production-grade cybersecurity architecture and defense bluepri
 ## 📁 Repository Structure
 
 ```text
+├── index.html                          # Interactive SOC Security Dashboard & Topology Simulator (Web UI)
 ├── HYBRID_CLOUD_DEFENSE_BLUEPRINT.md   # Master defense blueprint document (detailed specs, tables & analysis)
 ├── hybrid_cloud_topology.drawio        # Visual topology diagram (open directly in draw.io / diagrams.net)
 ├── firewall_policy.yaml                # Declarative firewall rules across all 5 boundaries (IaC ready)
 ├── suricata_rules.rules                # Production Suricata 7.x signatures (Edge, IMDS SSRF, Lateral, C2)
 └── README.md                           # Repository overview and navigation
 ```
+
+---
+
+## 🖥️ Interactive Web UI & Simulator
+
+This repository includes a standalone, zero-dependency **SOC Command Center Dashboard** (`index.html`) featuring:
+1. **Interactive Traffic & Attack Simulator**: Trace packet flows and firewall blocks for Legitimate Users, Cloud SSRF, Lateral Pivots, and Ransomware.
+2. **Packet Evaluation Tester**: Input Source, Destination, and Port to test which boundary rule triggers and whether traffic is allowed or dropped.
+3. **Live IDS/IPS Telemetry Console**: Real-time event simulation showing Suricata 7.x and Wazuh alerts.
+4. **Interactive Risk Heatmap**: Filter threats, likelihood, impact, and mitigation controls dynamically.
+
+> Simply open `index.html` directly in any web browser, or enable **GitHub Pages** (Settings > Pages > Branch: `main`) for instant live hosting!
 
 ---
 
