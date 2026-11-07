@@ -1,0 +1,248 @@
+# ==============================================================================
+# Declarative Layered Firewall & Security Policy for Hybrid Cloud Network
+# Version: 1.0.0
+# Target Engines: AWS Network Firewall, Transit Gateway, and Perimeter NGFW
+# Compliant with: NIST SP 800-207 Zero Trust, CIS Hybrid Network Benchmark
+# ==============================================================================
+
+version: "2026-11-01"
+metadata:
+  blueprint_name: "Hybrid Cloud Layered Defense Blueprint"
+  author: "Security Architecture Team"
+  environment: "Production Hybrid Enterprise"
+
+network_zones:
+  on_premises:
+    perimeter_dmz:
+      cidr: "10.10.1.0/24"
+      trust_level: "Tier-3-Semi-Trusted"
+    corporate_lan:
+      cidr: "10.10.10.0/24"
+      trust_level: "Tier-2-User-Workstations"
+    server_tier:
+      cidr: "10.10.20.0/24"
+      trust_level: "Tier-0-1-Critical-Identity-Data"
+    soc_mgmt:
+      cidr: "10.10.99.0/24"
+      trust_level: "Tier-0-SOC-Operations"
+    hybrid_interconnect:
+      cidr: "10.10.250.0/30"
+      tunnel_protocol: "IPsec over DirectConnect with MACsec"
+  
+  cloud_vpc:
+    security_inspection_vpc:
+      cidr: "10.20.0.0/20"
+      trust_level: "Tier-2-Ingress-Egress-Scrubbing"
+    application_private_subnet:
+      cidr: "10.20.17.0/24"
+      trust_level: "Tier-1-Workloads-EKS"
+    database_isolated_subnet:
+      cidr: "10.20.18.0/24"
+      trust_level: "Tier-0-Isolated-No-Internet"
+
+rule_groups:
+  # ----------------------------------------------------------------------------
+  # Boundary 1: On-Premises Edge Perimeter NGFW
+  # ----------------------------------------------------------------------------
+  - name: "Edge-Perimeter-Inbound-Rules"
+    type: "STATEFUL"
+    default_action: "DROP"
+    rules:
+      - id: "FW-EDGE-01"
+        priority: 10
+        action: "DROP"
+        source: "GeoIP:High-Risk-Sanctioned"
+        destination: "ANY"
+        protocol: "ANY"
+        port: "ANY"
+        description: "Drop all inbound scans from sanctioned/hostile nation states at outer perimeter"
+        logging: true
+
+      - id: "FW-EDGE-02"
+        priority: 100
+        action: "PASS"
+        source: "0.0.0.0/0"
+        destination: "10.10.1.10/32"
+        protocol: "TCP"
+        ports: [80, 443]
+        app_id: ["ssl", "web-browsing"]
+        inspection:
+          tls_decryption: true
+          waf_profile: "CRS-High-Sensitivity"
+        description: "Allow public HTTPS into DMZ Reverse Proxy with TLS termination"
+        logging: true
+
+      - id: "FW-EDGE-03"
+        priority: 110
+        action: "PASS"
+        source: "0.0.0.0/0"
+        destination: "10.10.1.20/32"
+        protocol: "TCP"
+        ports: [25]
+        app_id: ["smtp"]
+        inspection:
+          starttls_enforced: true
+          spf_dkim_dmarc_check: true
+        description: "Allow inbound email to Secure Email Gateway (SEG)"
+        logging: true
+
+      - id: "FW-EDGE-04"
+        priority: 120
+        action: "PASS"
+        source: "0.0.0.0/0"
+        destination: "10.10.1.30/32"
+        protocol: ["UDP", "TCP"]
+        ports: [500, 4500, 443]
+        app_id: ["ipsec", "ssl-vpn"]
+        inspection:
+          mfa_required: true
+          posture_assessment: true
+        description: "Allow client VPN termination with mandatory MFA"
+        logging: true
+
+  # ----------------------------------------------------------------------------
+  # Boundary 2: DMZ to Internal Core Firewall (ISFW)
+  # ----------------------------------------------------------------------------
+  - name: "DMZ-to-Internal-Segmentation-Rules"
+    type: "STATEFUL"
+    default_action: "DROP"
+    rules:
+      - id: "FW-DMZ-01"
+        priority: 200
+        action: "PASS"
+        source: "10.10.1.10/32"
+        destination: "10.10.20.100/32"
+        protocol: "TCP"
+        ports: [8443]
+        app_id: ["https"]
+        inspection:
+          strict_tls13: true
+        description: "Reverse proxy routed to internal back-end app cluster"
+        logging: true
+
+      - id: "FW-DMZ-02"
+        priority: 210
+        action: "PASS"
+        source: "10.10.1.20/32"
+        destination: "10.10.20.25/32"
+        protocol: "TCP"
+        ports: [25, 587]
+        app_id: ["smtp", "submission"]
+        inspection:
+          antivirus_stream_scan: true
+        description: "Sanitized email delivery to internal mailbox store"
+        logging: true
+
+      - id: "FW-DMZ-04"
+        priority: 230
+        action: "PASS"
+        source: "10.10.1.0/24"
+        destination: "10.10.20.10/32"
+        protocol: "TCP"
+        ports: [636]
+        app_id: ["ldaps"]
+        inspection:
+          require_client_certificate: true
+        description: "DMZ read-only authentication via LDAPS to Active Directory"
+        logging: true
+
+      - id: "FW-DMZ-06"
+        priority: 999
+        action: "DROP_AND_ALERT"
+        source: "10.10.1.0/24"
+        destination: "10.10.20.0/24"
+        protocol: "ANY"
+        ports: ["ANY"]
+        description: "Explicit drop and high-severity SOC alert for any unlisted DMZ-to-Core flow"
+        logging: true
+
+  # ----------------------------------------------------------------------------
+  # Boundary 3: Hybrid Interconnect Cross-Boundary Rules (Transit)
+  # ----------------------------------------------------------------------------
+  - name: "Hybrid-Interconnect-Boundary-Rules"
+    type: "STATEFUL"
+    default_action: "DROP"
+    rules:
+      - id: "FW-HYB-01"
+        priority: 300
+        action: "PASS"
+        source: "10.10.10.0/24"
+        destination: "10.20.17.0/24"
+        protocol: "TCP"
+        ports: [443]
+        description: "Internal workstations accessing private cloud microservices"
+        logging: true
+
+      - id: "FW-HYB-02"
+        priority: 310
+        action: "PASS"
+        source: "10.20.17.0/24"
+        destination: "10.10.20.50/32"
+        protocol: "TCP"
+        ports: [1521]
+        inspection:
+          sql_inspection: true
+        description: "Cloud microservices querying on-prem database"
+        logging: true
+
+      - id: "FW-HYB-05"
+        priority: 350
+        action: "DROP"
+        source: "0.0.0.0/0"
+        destination: "ANY"
+        protocol: "BGP"
+        ports: [179]
+        description: "Transit loop prevention; reject default route propagation over interconnect"
+        logging: true
+
+      - id: "FW-HYB-06"
+        priority: 360
+        action: "DROP_AND_ALERT"
+        source: "10.20.18.0/24"
+        destination: "10.10.0.0/16"
+        protocol: "ANY"
+        ports: ["ANY"]
+        description: "Block all cloud database initiated flows towards on-prem"
+        logging: true
+
+  # ----------------------------------------------------------------------------
+  # Boundary 4: Cloud Ingress & Security VPC Rules (AWS Network Firewall)
+  # ----------------------------------------------------------------------------
+  - name: "Cloud-Security-VPC-Rules"
+    type: "SURICATA_STATEFUL"
+    default_action: "DROP"
+    rules:
+      - id: "ANF-CLD-01"
+        priority: 400
+        action: "PASS"
+        source: "10.20.0.0/20"
+        destination: "10.20.17.0/24"
+        protocol: "TCP"
+        ports: [443, 8080]
+        description: "Ingress traffic from ALB passed after Suricata IPS inspection"
+        logging: true
+
+      - id: "ANF-CLD-02"
+        priority: 410
+        action: "PASS"
+        source: "10.20.17.0/24"
+        destination: "INTERNET"
+        protocol: "TCP"
+        ports: [443]
+        domain_allowlist:
+          - ".amazonaws.com"
+          - "github.com"
+          - "registry-1.docker.io"
+          - "quay.io"
+        description: "Strict domain-whitelisted outbound egress for container images and cloud APIs"
+        logging: true
+
+      - id: "ANF-CLD-03"
+        priority: 420
+        action: "DROP_AND_ALERT"
+        source: "10.20.0.0/16"
+        destination: "INTERNET"
+        protocol: "TCP"
+        ports: [22, 3389, 445]
+        description: "Drop all direct egress on administrative and SMB ports"
+        logging: true

@@ -1,0 +1,120 @@
+# ==============================================================================
+# Suricata 7.x IDS/IPS Custom Rule Set for Hybrid Cloud Defense Blueprint
+# Target: Ingress NIPS, Core TAP NIDS, and AWS Network Firewall
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Perimeter Edge & DMZ Exploit Blocking (Boundary 1 & 4)
+# ------------------------------------------------------------------------------
+
+# Block Log4Shell / JNDI LDAP injection strings in HTTP headers/payload
+drop http any any -> [$HOME_NET] any ( \
+    msg:"BLUEPRINT-EXPLOIT Inbound Log4j JNDI Exploit Attempt Detected"; \
+    flow:to_server,established; \
+    content:"${jndi:",nocase; http_uri; \
+    pcre:"/(ldap|rmi|dns|nis|iiop|corba):\/\//i"; \
+    classtype:attempted-admin; \
+    sid:2026001; rev:1; \
+)
+
+# Block Spring4Shell (CVE-2022-22965) ClassLoader manipulation
+drop http any any -> [$HOME_NET] any ( \
+    msg:"BLUEPRINT-EXPLOIT Spring4Shell Remote Code Execution Attempt"; \
+    flow:to_server,established; \
+    content:"class.module.classLoader"; nocase; http_client_body; \
+    classtype:web-application-attack; \
+    sid:2026002; rev:1; \
+)
+
+# Detect and Drop Path Traversal / LFI Probes targeting DMZ Reverse Proxies
+drop http any any -> [$HOME_NET] any ( \
+    msg:"BLUEPRINT-WEB Path Traversal Directory Crawl Attempt"; \
+    flow:to_server,established; \
+    content:"/etc/passwd"; nocase; http_uri; \
+    classtype:web-application-attack; \
+    sid:2026003; rev:1; \
+)
+
+# ------------------------------------------------------------------------------
+# 2. Cloud SSRF & Instance Metadata Service (IMDS) Defense (Boundary 4 & Workload)
+# ------------------------------------------------------------------------------
+
+# Drop any outbound/east-west attempt to query AWS IMDS without IMDSv2 token
+drop ip $HOME_NET any -> 169.254.169.254 [80,8080] ( \
+    msg:"BLUEPRINT-SSRF Unauthorized Attempt to Query AWS IMDS Directly"; \
+    flow:to_server,established; \
+    content:"GET"; http_method; \
+    content:"/latest/meta-data/"; http_uri; \
+    threshold:type limit, track by_src, count 1, seconds 60; \
+    classtype:attempted-recon; \
+    sid:2026010; rev:1; \
+)
+
+# Alert on attempt to acquire IMDSv2 Token from unexpected non-root process
+alert ip $HOME_NET any -> 169.254.169.254 80 ( \
+    msg:"BLUEPRINT-SSRF IMDSv2 Token Request Generated from Workload Subnet"; \
+    flow:to_server,established; \
+    content:"PUT"; http_method; \
+    content:"/latest/api/token"; http_uri; \
+    classtype:policy-violation; \
+    sid:2026011; rev:1; \
+)
+
+# ------------------------------------------------------------------------------
+# 3. Lateral Movement & Active Directory Reconnaissance (Boundary 2 & Core TAP)
+# ------------------------------------------------------------------------------
+
+# Detect Kerberoasting: Abnormal volume of TGS-REQ requests using legacy RC4 encryption
+alert krb5 any any -> $DOMAIN_CONTROLLERS 88 ( \
+    msg:"BLUEPRINT-LATERAL Suspected Kerberoasting Activity (RC4-HMAC TGS-REQ)"; \
+    flow:to_server,established; \
+    content:"|02 01 17|"; \
+    threshold:type threshold, track by_src, count 5, seconds 30; \
+    classtype:bad-unknown; \
+    sid:2026020; rev:1; \
+)
+
+# Detect SharpHound / BloodHound DCERPC Samr/Lsar OpenPolicy2 reconnaissance
+alert tcp $CORP_LAN any -> $DOMAIN_CONTROLLERS 445 ( \
+    msg:"BLUEPRINT-LATERAL Active Directory Mass Domain Reconnaissance (BloodHound)"; \
+    flow:to_server,established; \
+    content:"|ff|SMB"; depth:4; offset:4; \
+    content:"samr"; nocase; \
+    threshold:type threshold, track by_src, count 10, seconds 20; \
+    classtype:attempted-recon; \
+    sid:2026021; rev:1; \
+)
+
+# Detect Pass-the-Hash / SMB Relay attempts crossing the Hybrid Interconnect
+alert tcp any any -> $SERVER_TIER 445 ( \
+    msg:"BLUEPRINT-LATERAL Cross-Interconnect NTLM SSP Authentication Spike"; \
+    flow:to_server,established; \
+    content:"NTLMSSP"; \
+    threshold:type threshold, track by_src, count 8, seconds 10; \
+    classtype:suspicious-login; \
+    sid:2026022; rev:1; \
+)
+
+# ------------------------------------------------------------------------------
+# 4. Outbound Command & Control (C2) / Exfiltration Defense (Egress Filtering)
+# ------------------------------------------------------------------------------
+
+# Detect DNS Tunneling / Exfiltration (Anomalous sub-domain query lengths > 52 bytes)
+alert dns any any -> any 53 ( \
+    msg:"BLUEPRINT-EXFIL High Entropy / Potential DNS Tunneling Payload"; \
+    flow:to_server; \
+    dsize:>120; \
+    dns.query; pcre:"/^[a-zA-Z0-9_-]{52,}\./"; \
+    threshold:type limit, track by_src, count 2, seconds 60; \
+    classtype:network-scan; \
+    sid:2026030; rev:1; \
+)
+
+# Drop direct outbound connections to known TOR exit nodes or dynamic DNS domains
+drop tcp $HOME_NET any -> $EXTERNAL_NET 443 ( \
+    msg:"BLUEPRINT-C2 Egress Connection to Dynamic DNS / Suspicious TLD"; \
+    flow:to_server,established; \
+    tls.sni; pcre:"\.(duckdns\.org|ngrok\.io|serveo\.net)$"; \
+    classtype:trojan-activity; \
+    sid:2026031; rev:1; \
+)

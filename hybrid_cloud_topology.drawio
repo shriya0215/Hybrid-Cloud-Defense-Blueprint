@@ -1,0 +1,246 @@
+<mxfile host="app.diagrams.net" modified="2026-11-07T14:15:00.000Z" agent="Mozilla/5.0" version="21.6.8" type="device">
+  <diagram id="hybrid-cloud-defense-blueprint" name="Hybrid Cloud Defense Architecture">
+    <mxGraphModel dx="1420" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== INTERNET / EXTERNAL ZONE ==================== -->
+        <mxCell id="zone_internet" value="Untrusted External Zone (Internet)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=14;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="300" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_users" value="Legitimate Clients&#xa;&amp; Remote Workers" style="shape=mxgraph.cisco.misc.users;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="zone_internet">
+          <mxGeometry x="30" y="60" width="80" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_threats" value="Adversaries, Scanners&#xa;&amp; DDoS Botnets" style="shape=mxgraph.cisco.misc.skull;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="zone_internet">
+          <mxGeometry x="170" y="60" width="80" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="threat_intelligence" value="Threat Intelligence &amp;&#xa;Reputation Feeds" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="zone_internet">
+          <mxGeometry x="50" y="150" width="200" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== ON-PREMISES ENTERPRISE DATACENTER ==================== -->
+        <mxCell id="zone_onprem" value="On-Premises Enterprise Network (HQ / DC - 10.10.0.0/16)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=14;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="400" y="40" width="560" height="840" as="geometry" />
+        </mxCell>
+
+        <!-- Perimeter / Edge Firewall & IDS/IPS -->
+        <mxCell id="edge_fw" value="Edge Perimeter NGFW (Palo Alto / Fortinet)&#xa;Stateful Packet Inspection + TLS Decryption&#xa;Anti-DDoS + Threat Prevention" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="40" y="50" width="480" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_ids" value="Network IDS/IPS Sensor (Suricata/Snort - Inline/TAP)&#xa;Signature + Anomaly Inspection (Mirror from Core SPAN)" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;fontStyle=1;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="40" y="115" width="480" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- DMZ Subnet -->
+        <mxCell id="subnet_dmz" value="Demilitarized Zone (DMZ - 10.10.1.0/24)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;startSize=25;fontStyle=1;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="40" y="170" width="480" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="dmz_reverse_proxy" value="Reverse Proxy / WAF&#xa;(NGINX / F5 BIG-IP)&#xa;10.10.1.10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="subnet_dmz">
+          <mxGeometry x="20" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dmz_seg" value="Secure Email Gateway&#xa;(SEG / Proofpoint / ESA)&#xa;10.10.1.20" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="subnet_dmz">
+          <mxGeometry x="170" y="40" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dmz_ext_vpn" value="SSL/IPsec VPN Gateway&#xa;(GlobalProtect / AnyConnect)&#xa;10.10.1.30" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="subnet_dmz">
+          <mxGeometry x="330" y="40" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="dmz_sandbox" value="On-Prem Malware Sandboxing Detonation Appliance (10.10.1.50)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;fontStyle=1;" vertex="1" parent="subnet_dmz">
+          <mxGeometry x="40" y="100" width="400" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Internal Firewall Boundary -->
+        <mxCell id="internal_fw" value="Internal Segmentation Firewall (ISFW / Layer 4-7)&#xa;Strict Zero-Trust Rules between DMZ &amp; Internal LAN/Data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="40" y="340" width="480" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- Corporate LAN Subnet -->
+        <mxCell id="subnet_corplan" value="Corporate Workstation LAN (10.10.10.0/24)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=25;fontStyle=1;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="40" y="400" width="480" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="lan_endpoints" value="User Workstations (Laptops/Desktops)&#xa;• Host-based EDR (CrowdStrike / Defender)&#xa;• HIDS/FIM (Wazuh Agent)&#xa;• 802.1X NAC Integration" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="subnet_corplan">
+          <mxGeometry x="20" y="35" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lan_switches" value="Internal Core Switch&#xa;(SPAN Port to NIDS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="subnet_corplan">
+          <mxGeometry x="320" y="35" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Server & Database Tier Subnet -->
+        <mxCell id="subnet_servers" value="Internal Server &amp; Identity Tier (10.10.20.0/24)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;startSize=25;fontStyle=1;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="40" y="530" width="480" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="srv_ad" value="Active Directory / DNS / PKI&#xa;(Tier 0 Asset - 10.10.20.10)&#xa;App-Locker + EDR Isolated" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="subnet_servers">
+          <mxGeometry x="20" y="35" width="160" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="srv_database" value="Core Enterprise Database / ERP&#xa;(Oracle / MS-SQL - 10.10.20.50)&#xa;Encrypted at Rest / In-Transit" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#ffffff;strokeColor=#82b366;fontSize=10;" vertex="1" parent="subnet_servers">
+          <mxGeometry x="200" y="35" width="140" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="srv_hids_agent" value="HIDS Agent +&#xa;FIM (Wazuh)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="subnet_servers">
+          <mxGeometry x="360" y="35" width="100" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Management & SOC Monitoring Subnet -->
+        <mxCell id="subnet_mgmt" value="Management &amp; SOC Security Operations (10.10.99.0/24)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;startSize=25;fontStyle=1;" vertex="1" parent="zone_onprem">
+          <mxGeometry x="40" y="670" width="480" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="soc_siem" value="SIEM / SOAR Collector&#xa;(Splunk / Microsoft Sentinel)&#xa;10.10.99.10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;" vertex="1" parent="subnet_mgmt">
+          <mxGeometry x="20" y="35" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="soc_wazuh" value="Central HIDS Manager&#xa;(Wazuh Server)&#xa;10.10.99.20" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;" vertex="1" parent="subnet_mgmt">
+          <mxGeometry x="170" y="35" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="soc_bastion" value="Privileged Access (PAM)&#xa;Hardened Bastion Jump Host&#xa;10.10.99.30 (MFA Enforced)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;" vertex="1" parent="subnet_mgmt">
+          <mxGeometry x="320" y="35" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="soc_netflow" value="Flow Log &amp; Syslog Collector (Correlates Zeek/Suricata + CloudFlows)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="subnet_mgmt">
+          <mxGeometry x="20" y="95" width="440" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== HYBRID INTERCONNECT BOUNDARY ==================== -->
+        <mxCell id="zone_interconnect" value="Encrypted Hybrid Interconnect (Transit Layer)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=13;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="360" width="220" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="link_direct_connect" value="AWS Direct Connect / Azure ExpressRoute&#xa;Dedicated 10Gbps Cross-Connect" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="zone_interconnect">
+          <mxGeometry x="15" y="45" width="190" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="link_ipsec" value="IPsec VPN Tunnel with MACsec&#xa;AES-256-GCM + IKEv2 / Perfect Forward Secrecy" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="zone_interconnect">
+          <mxGeometry x="15" y="100" width="190" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="interconnect_fw" value="Cross-Boundary Boundary Firewall&#xa;BGP Route Filtering + State Check&#xa;Inspects Lateral Cloud-to-OnPrem Flow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;fontStyle=1;" vertex="1" parent="zone_interconnect">
+          <mxGeometry x="15" y="175" width="190" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== CLOUD VPC ENVIRONMENT (AWS / HYBRID) ==================== -->
+        <mxCell id="zone_cloud" value="Cloud Enterprise VPC (AWS Region - 10.20.0.0/16)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e6f2ff;strokeColor=#0066cc;fontStyle=1;fontSize=14;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="40" width="560" height="840" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud Transit Gateway -->
+        <mxCell id="cloud_tgw" value="AWS Transit Gateway (TGW) / Central Cloud Router&#xa;Route Domain Segmentation (Security, Workload, Egress)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="zone_cloud">
+          <mxGeometry x="40" y="50" width="480" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Inspection & Security VPC Subnet -->
+        <mxCell id="subnet_sec_vpc" value="Centralized Inspection &amp; Ingress/Egress VPC (10.20.0.0/20)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;startSize=25;fontStyle=1;" vertex="1" parent="zone_cloud">
+          <mxGeometry x="40" y="115" width="480" height="215" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud_waf" value="AWS CloudFront + WAF v2&#xa;Layer 7 OWASP Top 10 + Rate Limiting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="subnet_sec_vpc">
+          <mxGeometry x="20" y="35" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud_alb" value="Public Application Load Balancer&#xa;(ALB Ingress) - 10.20.1.10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="subnet_sec_vpc">
+          <mxGeometry x="250" y="35" width="210" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud_netfw" value="AWS Network Firewall (Suricata Engine) / Palo Alto VM-Series&#xa;Stateful Inspection + Suricata IPS Rules + Domain List Filtering" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontStyle=1;" vertex="1" parent="subnet_sec_vpc">
+          <mxGeometry x="20" y="90" width="440" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud_nat_gw" value="Managed NAT Gateways&#xa;(Restricted Outbound Egress)&#xa;10.20.2.0/24" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="subnet_sec_vpc">
+          <mxGeometry x="20" y="150" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud_flowlogs" value="VPC Flow Logs + Traffic Mirroring&#xa;Sent to SOC SIEM &amp; Zeek Core" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="subnet_sec_vpc">
+          <mxGeometry x="250" y="150" width="210" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- Production Workload VPC -->
+        <mxCell id="subnet_prod_vpc" value="Production Application VPC (10.20.16.0/20)" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;startSize=25;fontStyle=1;" vertex="1" parent="zone_cloud">
+          <mxGeometry x="40" y="350" width="480" height="290" as="geometry" />
+        </mxCell>
+
+        <!-- App Tier Subnet -->
+        <mxCell id="tier_app" value="Private Application Subnet (10.20.17.0/24) - No Public IPs" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;startSize=20;fontStyle=1;" vertex="1" parent="subnet_prod_vpc">
+          <mxGeometry x="20" y="35" width="440" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="app_microservices" value="Kubernetes (EKS) Worker Nodes / Microservices&#xa;• Microsegmentation via Calico CNI NetworkPolicies&#xa;• Container Runtime Security (Falco eBPF)&#xa;• Host EDR Sensor &amp; Non-Root Pods" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="tier_app">
+          <mxGeometry x="15" y="30" width="410" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Database Tier Subnet -->
+        <mxCell id="tier_db" value="Isolated Data Tier Subnet (10.20.18.0/24) - Air-Gapped from Internet" style="swimlane;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#82b366;startSize=20;fontStyle=1;" vertex="1" parent="subnet_prod_vpc">
+          <mxGeometry x="20" y="160" width="440" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="db_cluster" value="Amazon Aurora Multi-AZ Cluster (Postgres/MySQL)&#xa;• Inbound: ONLY Port 5432 from App Security Group&#xa;• Outbound: Deny All (No IGW/NAT Route)&#xa;• AWS KMS Customer Managed Keys (CMK) Encryption" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="tier_db">
+          <mxGeometry x="15" y="30" width="410" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Cloud Shared Services & Threat Detection -->
+        <mxCell id="subnet_cloud_sec" value="Cloud Security Services &amp; Serverless Telemetry Tier" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;startSize=25;fontStyle=1;" vertex="1" parent="zone_cloud">
+          <mxGeometry x="40" y="660" width="480" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="sec_guardduty" value="Amazon GuardDuty&#xa;(ML &amp; Threat Intel Anomaly Detection: DNS, IAM, EKS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;" vertex="1" parent="subnet_cloud_sec">
+          <mxGeometry x="20" y="35" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="sec_security_hub" value="AWS Security Hub + Inspector&#xa;(CSPM &amp; Vulnerability Scanning)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#b85450;fontSize=10;" vertex="1" parent="subnet_cloud_sec">
+          <mxGeometry x="250" y="35" width="210" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="sec_privatelink" value="AWS PrivateLink (VPC Endpoints)&#xa;S3, KMS, ECR, Secrets Manager (No public traversal)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="subnet_cloud_sec">
+          <mxGeometry x="20" y="95" width="440" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== CONNECTORS & DATA FLOWS ==================== -->
+        <!-- External Ingress to OnPrem DMZ -->
+        <mxCell id="conn_ext_to_onprem" value="HTTPS/TLS 443" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1" source="ext_users" target="edge_fw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="110" y="100" />
+              <mxPoint x="110" y="115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Edge FW to DMZ -->
+        <mxCell id="conn_fw_to_dmz" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#9673a6;strokeWidth=2;" edge="1" parent="1" source="edge_fw" target="edge_ids">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- DMZ through ISFW to Corporate LAN -->
+        <mxCell id="conn_dmz_to_lan" value="Inspected RPC / HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;strokeWidth=2;dashed=1;" edge="1" parent="1" source="subnet_dmz" target="internal_fw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Corporate LAN to Server Tier -->
+        <mxCell id="conn_lan_to_srv" value="Kerberos / SMB / RDP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="internal_fw" target="subnet_corplan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- On-Premises to Interconnect -->
+        <mxCell id="conn_onprem_to_interconnect" value="Encrypted Direct Connect / IPsec" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0066cc;strokeWidth=3;" edge="1" parent="1" source="internal_fw" target="interconnect_fw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Interconnect to Cloud TGW -->
+        <mxCell id="conn_interconnect_to_tgw" value="BGP / IPSec Cross-Link" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0066cc;strokeWidth=3;" edge="1" parent="1" source="interconnect_fw" target="cloud_tgw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1110" y="115" />
+              <mxPoint x="1500" y="115" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- External Traffic to Cloud WAF -->
+        <mxCell id="conn_ext_to_cloudwaf" value="Internet Ingress (HTTPS 443)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1" source="ext_users" target="cloud_waf">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="190" y="20" />
+              <mxPoint x="1380" y="20" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Cloud TGW to Workload VPC -->
+        <mxCell id="conn_tgw_to_workload" value="Private Encrypted Transit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="cloud_tgw" target="subnet_prod_vpc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1500" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
